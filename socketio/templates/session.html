@@ -35,12 +35,13 @@
       } )
       
       
-      /*
       socket.emit('join',{
-          data['room']: 'alive',
-          data['username']: 'jefflee0127'
+          'room': 'alive',
+          'username': 'jefflee0127'
       })
-      */
+      
+
+
       var form = $( 'form' ).on( 'submit', function( e ) {
         e.preventDefault()
         let user_name = $( 'input.username' ).val()

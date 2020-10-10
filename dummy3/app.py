@@ -2,7 +2,6 @@ import pymysql
 from flask import Flask 
 from flask_restful import Resource, Api 
 from flask_restful import reqparse 
-from flaskext.mysql import MySQL
 
 
 app = Flask(__name__)
