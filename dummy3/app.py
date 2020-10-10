@@ -1,46 +1,60 @@
+import pymysql 
 from flask import Flask 
 from flask_restful import Resource, Api 
 from flask_restful import reqparse 
 from flaskext.mysql import MySQL
 
+
 app = Flask(__name__)
 api = Api(app)
-
-mysql = MySQL()
-app.config['MYSQL_DATABASE_USER'] = 'root'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'test1234'
-app.config['MYSQL_DATABASE_DB'] = 'junction_zepia'
-app.config['MYSQL_DATABASE_HOST'] = '164.125.219.21'
-app.config['MYSQL_DATABASE_PORT'] = 13306
-mysql.init_app(app)
-
 
 class KillUser(Resource):
     def post(self):
         try:
             parser = reqparse.RequestParser()
             parser.add_argument('user_name', type=str)
-            parser.add_argument('dummy', type=str)
             args = parser.parse_args()
-
             _userName = args['user_name']
-            _dummy = args['dummy']
 
-            conn = mysql.connect()
+            conn = pymysql.connect(host='164.125.219.21', port=13306, user='root', password='test1234', database='junction_zepia')
             cursor = conn.cursor()
-            cursor.callproc('sp_kill_user_2', (_userName, _dummy))
-            data = cursor.fetchall()
+            sql ="UPDATE user SET isalive=0 WHERE username=%s"
+            cursor.execute(sql, (_userName,))
+            conn.commit() 
 
-            if len(data) is 0:
-                conn.commit()
-                return {'StatusCode': '200', 'Message': 'User Killing success'}
-            else:
-                return {'StatusCode': '1000', 'Message': str(data[0])}
+            return {'StatusCode': '200', 'Message': 'User Killing Success'}
+
         except Exception as e:
             return {'error': str(e)}
 
+class LogIn(Resource):
+    def post(self):
+         try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('user_name', type=str)
+            parser.add_argument('password', type=str)
+            args = parser.parse_args()
+
+            _userName = args['user_name']
+            _passWord = args['password']
+            
+            conn = pymysql.connect(host='164.125.219.21', port=13306, user='root', password='test1234', database='junction_zepia')
+            cursor = conn.cursor()
+            sql = "SELECT * FROM user WHERE username=%s and password=%s"
+            cursor.execute(sql, ( _userName, _passWord))
+            num = cursor.rowcount
+
+            if num==1:
+                return {'StatusCode' : '200' , 'Message': 'LogIn Success'}
+            else: 
+                return {'StatusCode' : '400', 'Message' : 'LogIn Fail'}
+         except Exception as e:
+            return {'error': str(e)}
+
+
 
 api.add_resource(KillUser, '/killuser') 
+api.add_resource(LogIn, '/login')
 
 if __name__ == '__main__':
     app.run(debug=True)
